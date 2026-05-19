@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Розрахунок моделі - AeroSpread Pro</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Space+Grotesk:wght@300;500;700&display=swap');
+        
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #1a1f3a;
+            --tertiary-bg: #16213e;
+            --accent: #00d4ff;
+            --accent-secondary: #ff6b00;
+            --text-primary: #ffffff;
+            --text-secondary: #8892b0;
+            --border: #233554;
+            --success: #64ffda;
+            --warning: #ffab00;
+            --danger: #ff5555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--secondary-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        .back-link:hover {
+            color: var(--accent);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .header-btn {
+            padding: 0.75rem 1.5rem;
+            border: 1px solid var(--border);
+            background: var(--tertiary-bg);
+            color: var(--text-primary);
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .header-btn.primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            border: none;
+            color: var(--primary-bg);
+            font-weight: 600;
+        }
+
+        .header-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .calculation-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .map-panel {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .panel-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        #resultMap {
+            height: 600px;
+        }
+
+        .results-panel {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .calc-status {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .calc-status.calculating {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .calc-status.success {
+            background: rgba(100, 255, 218, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .result-item {
+            margin-bottom: 1.5rem;
+            padding: 1.5rem;
+            background: var(--tertiary-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .result-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .result-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .result-unit {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .legend {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: var(--tertiary-bg);
+            border-radius: 8px;
+        }
+
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(100, 255, 218, 0.95);
+            border: 2px solid #64ffda;
+            color: #0a0e1a;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 10px 30px rgba(100, 255, 218, 0.3);
+        }
+
+        .notification.error {
+            background: rgba(255, 85, 85, 0.95);
+            border-color: #ff5555;
+            color: #ffffff;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 15px;
+            border-radius: 3px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .data-table {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--tertiary-bg);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .value-good { color: var(--success); font-weight: 600; }
+        .value-warning { color: var(--warning); font-weight: 600; }
+        .value-danger { color: var(--danger); font-weight: 600; }
+
+        @media (max-width: 1200px) {
+            .calculation-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="notificationContainer"></div>
+
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <a href="dashboard.html" class="back-link">← Назад до меню</a>
+                <h1 class="page-title">Результати моделювання</h1>
+                <p class="page-subtitle">Гауссова модель розповсюдження</p>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn primary" onclick="saveResultsToDatabase()" style="background: linear-gradient(135deg, #64ffda, #00d4ff); border: none;">💾 Зберегти проект</button>
+                <button class="header-btn primary" onclick="goToReport()">📊 Звіт</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="calculation-grid">
+            <div class="map-panel">
+                <div class="panel-header">
+                    <h3 class="panel-title">Візуалізація</h3>
+                    <p class="panel-subtitle">Ізолінії концентрації</p>
+                </div>
+                <div id="resultMap"></div>
+            </div>
+
+            <div class="results-panel">
+                <div class="calc-status calculating" id="calcStatus">
+                    <div class="spinner"></div>
+                    Розрахунок...
+                </div>
+
+                <div id="resultsContent" style="display:none;">
+                    <!-- Назва речовини -->
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--tertiary-bg); border-radius: 12px; border: 1px solid var(--accent);">
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">
+                            Речовина
+                        </div>
+                        <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent);" id="substanceName">
+                            —
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;" id="substanceMac">
+                            ГДК: — мг/м³
+                        </div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Макс. концентрація</div>
+                        <div>
+                            <span class="result-value" id="maxConc">0</span>
+                            <span class="result-unit">мг/м³</span>
+                        </div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Відстань до найбільшої концентрації</div>
+                        <div>
+                            <span class="result-value" id="maxDist">0</span>
+                            <span class="result-unit">м</span>
+                        </div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Небезпечна зона</div>
+                        <div>
+                            <span class="result-value" id="danger">0</span>
+                            <span class="result-unit">м</span>
+                        </div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Перевищення ГДК</div>
+                        <div>
+                            <span class="result-value" id="ratio">0</span>
+                            <span class="result-unit">разів</span>
+                        </div>
+                    </div>
+
+                    <div class="legend">
+                        <div class="legend-title">Легенда</div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background:#ff0000;"></div>
+                            <span>> 10 ГДК</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background:#ff6b00;"></div>
+                            <span>5-10 ГДК</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background:#ffab00;"></div>
+                            <span>1-5 ГДК</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background:#00d4ff;"></div>
+                            <span>0.1-1 ГДК</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background:#64ffda;"></div>
+                            <span>< 0.1 ГДК</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-table">
+            <div class="table-header">
+                <h3 class="panel-title">Детальні результати</h3>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Відстань, м</th>
+                        <th>Концентрація, мг/м³</th>
+                        <th>% від ГДК</th>
+                        <th>Оцінка</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let map, parameters, results;
+
+        function goToReport() {
+            const pid = new URLSearchParams(window.location.search).get('view');
+            window.location.href = pid ? 'export.html?project=' + pid : 'export.html';
+        }
+
+        // Конвертація числових градусів назад у румб (для старих записів без wind_direction_code)
+        function degreesToCardinal(deg) {
+            const d = ((parseFloat(deg) % 360) + 360) % 360;
+            const cards = ['N','NE','E','SE','S','SW','W','NW'];
+            return cards[Math.round(d / 45) % 8];
+        }
+
+        function dbRowToParameters(row) {
+            const mac = row.mac_single
+                ? parseFloat(row.mac_single)
+                : (parseFloat(row.gdk_ratio) > 0
+                    ? parseFloat(row.max_concentration) / parseFloat(row.gdk_ratio)
+                    : 0.1);
+
+            // Пріоритет: збережений код румбу → конвертація з градусів → 'N'
+            const windDir = row.wind_direction_code
+                || (row.wind_direction ? degreesToCardinal(row.wind_direction) : 'N');
+
+            return {
+                objectName:     row.project_name    || '',
+                latitude:       parseFloat(row.latitude),
+                longitude:      parseFloat(row.longitude),
+                sourceHeight:   parseFloat(row.source_height)  || 25,
+                emissionRate:   parseFloat(row.emission_rate)  || 1,
+                windSpeed:      parseFloat(row.wind_speed)     || 1,
+                windDirection:  windDir,
+                temperature:    parseFloat(row.temperature)    || 15,
+                pressure:       parseFloat(row.pressure)       || 1013,
+                humidity:       parseFloat(row.humidity)       || 65,
+                stabilityClass: row.stability_class            || 'D',
+                substance: {
+                    name_ua:    row.substance_name    || '',
+                    name_en:    row.substance_name_en || '',
+                    mac_single: String(mac)
+                }
+            };
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const pid = new URLSearchParams(window.location.search).get('view');
+            if (pid) {
+                const token = localStorage.getItem('token');
+                if (!token) { window.location.href = 'index.html'; return; }
+                try {
+                    const r = await fetch('/api/simulation/results/' + pid, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    if (r.ok) {
+                        parameters = dbRowToParameters(await r.json());
+                    } else {
+                        alert('Проект не знайдено');
+                        window.location.href = 'results.html';
+                        return;
+                    }
+                } catch(e) {
+                    alert('Помилка завантаження');
+                    window.location.href = 'results.html';
+                    return;
+                }
+            } else {
+                const saved = localStorage.getItem('modelParameters');
+                if (!saved) {
+                    alert('Параметри не знайдено');
+                    window.location.href = 'parameters.html';
+                    return;
+                }
+                parameters = JSON.parse(saved);
+            }
+            initMap();
+            calculate();
+        });
+
+        function initMap() {
+            map = L.map('resultMap').setView([parameters.latitude, parameters.longitude], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            L.marker([parameters.latitude, parameters.longitude], {
+                icon: L.divIcon({html: '🏭', className: '', iconSize: [30,30]})
+            }).addTo(map).bindPopup('<b>Джерело</b>').openPopup();
+        }
+
+        function calculate() {
+            setTimeout(() => {
+                const Q = parameters.emissionRate;
+                const H = parameters.sourceHeight;
+                const u = parameters.windSpeed;
+                const mac = parseFloat(parameters.substance.mac_single) || 0.1; // Конвертуємо в число!
+
+                const sigma = getSigmaFunctions(parameters.stabilityClass);
+                let maxC = 0, maxDist = 0, dangerRadius = 0;
+
+                for (let x = 10; x <= 5000; x += 10) {
+                    const C = gaussianPlume(Q, H, u, x, 0, sigma.y(x), sigma.z(x));
+                    if (C > maxC) { maxC = C; maxDist = x; }
+                    if (C > mac && x > dangerRadius) dangerRadius = x;
+                }
+
+                results = {maxC, maxDist, dangerRadius, ratio: maxC / mac};
+                display();
+                drawIsolines(Q, H, u, sigma, mac);
+                fillTable(Q, H, u, sigma, mac);
+            }, 1500);
+        }
+
+        function gaussianPlume(Q, H, u, x, y, sy, sz) {
+            if (x <= 0) return 0;
+            return (Q / (2 * Math.PI * u * sy * sz)) *
+                   Math.exp(-0.5 * (y/sy)**2) *
+                   Math.exp(-0.5 * (H/sz)**2) * 1000;
+        }
+
+        function getSigmaFunctions(sc) {
+            const c = {
+                A: {ya:0.22, yb:0.894, za:0.20, zb:0.894},
+                B: {ya:0.16, yb:0.894, za:0.12, zb:0.894},
+                C: {ya:0.11, yb:0.894, za:0.08, zb:0.894},
+                D: {ya:0.08, yb:0.894, za:0.06, zb:0.894},
+                E: {ya:0.06, yb:0.894, za:0.03, zb:0.894},
+                F: {ya:0.04, yb:0.894, za:0.016, zb:0.894}
+            }[sc] || c.D;
+            return {
+                y: x => c.ya * x**c.yb,
+                z: x => c.za * x**c.zb
+            };
+        }
+
+        function display() {
+            document.getElementById('calcStatus').className = 'calc-status success';
+            document.getElementById('calcStatus').textContent = '✅ Готово';
+            document.getElementById('resultsContent').style.display = 'block';
+            
+            // Заповнення назви речовини
+            const substanceName = parameters.substance.name_ua || 'Невідома речовина';
+            const substanceNameEn = parameters.substance.name_en ? ` (${parameters.substance.name_en})` : '';
+            const mac = parseFloat(parameters.substance.mac_single) || 0.1;
+            
+            document.getElementById('substanceName').textContent = substanceName + substanceNameEn;
+            document.getElementById('substanceMac').textContent = `ГДК: ${mac} мг/м³`;
+            
+            // Заповнення результатів
+            document.getElementById('maxConc').textContent = results.maxC.toFixed(4);
+            document.getElementById('maxDist').textContent = Math.round(results.maxDist);
+            document.getElementById('danger').textContent = Math.round(results.dangerRadius);
+            document.getElementById('ratio').textContent = results.ratio.toFixed(2);
+        }
+
+        // Збереження результатів в БД
+        async function saveResultsToDatabase() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    console.error('Токен не знайдений');
+                    return;
+                }
+
+                const mac = parseFloat(parameters.substance.mac_single) || 0.1;
+
+                // Конвертуємо румб у градуси для збереження в БД
+                const windDirDegrees = getWindDirectionDegrees(parameters.windDirection);
+
+                const resultsData = {
+                    project_name: parameters.objectName || 'Розрахунок',
+                    substance_id: 1,
+                    substance_name: parameters.substance?.name_ua || '',
+                    substance_name_en: parameters.substance?.name_en || '',
+                    mac_single: parseFloat(parameters.substance?.mac_single) || 0.1,
+                    latitude: parameters.latitude,
+                    longitude: parameters.longitude,
+                    source_height: parameters.sourceHeight,
+                    emission_rate: parameters.emissionRate,
+                    wind_speed: parameters.windSpeed,
+                    wind_direction: windDirDegrees,
+                    wind_direction_code: parameters.windDirection || 'N',
+                    temperature: parameters.temperature,
+                    pressure: parameters.pressure || 1013,
+                    humidity: parameters.humidity || 65,
+                    stability_class: parameters.stabilityClass,
+                    max_concentration: results.maxC,
+                    max_distance: results.maxDist,
+                    danger_radius: results.dangerRadius,
+                    gdk_ratio: results.ratio,
+                    calculation_date: new Date().toISOString()
+                };
+
+                console.log('Відправляємо дані на сервер:', resultsData);
+
+                const response = await fetch('/api/simulation/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(resultsData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Результати збережені в БД:', result);
+                    showNotification('✅ Проект успішно збережено!', 'success');
+                } else {
+                    const error = await response.json();
+                    console.error('Помилка збереження результатів:', error);
+                    showNotification('❌ Помилка: ' + (error.message || 'Невідома помилка'), 'error');
+                }
+            } catch (error) {
+                console.error('Помилка при збереженні результатів:', error);
+                showNotification('❌ Помилка підключення до сервера', 'error');
+            }
+        }
+
+        // Функція для показу повідомлень
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = 'notification' + (type === 'error' ? ' error' : '');
+            notification.textContent = message;
+            
+            container.appendChild(notification);
+            
+            // Приховуємо повідомлення через 4 секунди
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+
+        function drawIsolines(Q, H, u, sigma, mac) {
+            console.log('Початок малювання ізоліній...');
+            console.log('Параметри:', {Q, H, u, mac, windDir: parameters.windDirection});
+            
+            // Конвертуємо напрямок вітру в радіани
+            const windDirectionDegrees = getWindDirectionDegrees(parameters.windDirection);
+            const windAngle = (windDirectionDegrees * Math.PI) / 180;
+            console.log('Напрямок вітру:', windDirectionDegrees, '°');
+            
+            // Знаходимо максимальну концентрацію
+            let absMaxC = 0;
+            for (let x = 50; x <= 2000; x += 100) {
+                const C = gaussianPlume(Q, H, u, x, 0, sigma.y(x), sigma.z(x));
+                if (C > absMaxC) absMaxC = C;
+            }
+            console.log('Максимальна концентрація:', absMaxC, 'мг/м³');
+            
+            // Рівні для малювання
+            const levels = [
+                {threshold: 10*mac, color: '#ff0000', opacity: 0.6, label: '> 10 ГДК'},
+                {threshold: 5*mac, color: '#ff6b00', opacity: 0.5, label: '5-10 ГДК'},
+                {threshold: mac, color: '#ffab00', opacity: 0.45, label: '1-5 ГДК'},
+                {threshold: 0.5*mac, color: '#ffd700', opacity: 0.4, label: '0.5-1 ГДК'},
+                {threshold: 0.1*mac, color: '#00d4ff', opacity: 0.35, label: '0.1-0.5 ГДК'},
+                {threshold: 0.01*mac, color: '#64ffda', opacity: 0.3, label: '< 0.1 ГДК'}
+            ];
+
+            const reachableLevels = levels.filter(l => l.threshold <= absMaxC * 1.5);
+            console.log('Рівнів для малювання:', reachableLevels.length);
+
+            // Малюємо від найнижчого до найвищого
+            reachableLevels.reverse().forEach((level, idx) => {
+                console.log(`Малюємо рівень ${idx}: ${level.threshold.toFixed(6)} мг/м³`);
+                
+                const points = [];
+                const maxDistance = 3000;
+                
+                // Створюємо контур в локальній системі координат (X - за вітром, Y - поперек)
+                for (let y = -maxDistance; y <= maxDistance; y += 30) {
+                    let maxX = 0;
+                    
+                    for (let x = 10; x <= maxDistance; x += 20) {
+                        const C = gaussianPlume(Q, H, u, x, y, sigma.y(x), sigma.z(x));
+                        if (C >= level.threshold) {
+                            maxX = x;
+                        }
+                    }
+                    
+                    if (maxX > 0) {
+                        // Повертаємо точку відповідно до напрямку вітру
+                        const rotatedX = maxX * Math.cos(windAngle) - y * Math.sin(windAngle);
+                        const rotatedY = maxX * Math.sin(windAngle) + y * Math.cos(windAngle);
+                        const coord = offset(parameters.latitude, parameters.longitude, rotatedX, rotatedY);
+                        points.push([coord.lat, coord.lng]);
+                    }
+                }
+                
+                // Додаємо точки назад
+                for (let y = maxDistance; y >= -maxDistance; y -= 30) {
+                    let minX = maxDistance;
+                    
+                    for (let x = maxDistance; x >= 10; x -= 20) {
+                        const C = gaussianPlume(Q, H, u, x, y, sigma.y(x), sigma.z(x));
+                        if (C >= level.threshold) {
+                            minX = x;
+                        } else if (minX < maxDistance) {
+                            break;
+                        }
+                    }
+                    
+                    if (minX < maxDistance && minX > 0) {
+                        // Повертаємо точку відповідно до напрямку вітру
+                        const rotatedX = minX * Math.cos(windAngle) - y * Math.sin(windAngle);
+                        const rotatedY = minX * Math.sin(windAngle) + y * Math.cos(windAngle);
+                        const coord = offset(parameters.latitude, parameters.longitude, rotatedX, rotatedY);
+                        points.push([coord.lat, coord.lng]);
+                    }
+                }
+                
+                console.log(`Точок у контурі: ${points.length}`);
+                
+                if (points.length >= 3) {
+                    const polygon = L.polygon(points, {
+                        color: level.color,
+                        fillColor: level.color,
+                        fillOpacity: level.opacity,
+                        weight: 2,
+                        opacity: 0.9
+                    }).addTo(map);
+                    
+                    polygon.bindPopup(
+                        `<b>${level.label}</b><br>` +
+                        `Концентрація: ≥ ${level.threshold.toFixed(6)} мг/м³<br>` +
+                        `(${(level.threshold/mac*100).toFixed(1)}% від ГДК)`
+                    );
+                    
+                    console.log(`✅ Полігон намальовано`);
+                } else {
+                    console.log(`❌ Недостатньо точок (${points.length})`);
+                }
+            });
+            
+            console.log('Малювання завершено!');
+        }
+
+        // Конвертація напрямку вітру в градуси (математична: 0=схід, 90=північ)
+        function getWindDirectionDegrees(direction) {
+            // Якщо прийшло число (градуси компаса з БД) — конвертуємо в математичний кут
+            if (typeof direction === 'number' || (typeof direction === 'string' && !isNaN(direction) && !['N','NE','E','SE','S','SW','W','NW'].includes(direction))) {
+                const compass = ((parseFloat(direction) % 360) + 360) % 360;
+                // Компас: 0=N, 90=E, 180=S, 270=W → Математика: 0=E, 90=N
+                return 90 - compass;
+            }
+            const directions = {
+                'N':  90,
+                'NE': 45,
+                'E':  0,
+                'SE': 315,
+                'S':  270,
+                'SW': 225,
+                'W':  180,
+                'NW': 135
+            };
+            return directions[direction] ?? 0;
+        }
+
+        function offset(lat, lng, xm, ym) {
+            const R = 6371000;
+            return {
+                lat: lat + (ym / R) * (180 / Math.PI),
+                lng: lng + (xm / R) * (180 / Math.PI) / Math.cos(lat * Math.PI / 180)
+            };
+        }
+
+        function fillTable(Q, H, u, sigma, mac) {
+            const tb = document.getElementById('tableBody');
+            [100, 250, 500, 1000, 1500, 2000, 3000, 5000].forEach(d => {
+                const C = gaussianPlume(Q, H, u, d, 0, sigma.y(d), sigma.z(d));
+                const pct = (C / mac * 100);
+                let cls = 'value-good', txt = 'Безпечно';
+                if (pct > 100) { cls = 'value-warning'; txt = 'Небезпечно'; }
+                if (pct > 500) { cls = 'value-danger'; txt = 'Дуже небезпечно'; }
+                tb.innerHTML += `<tr><td>${d}</td><td>${C.toFixed(6)}</td><td class="${cls}">${pct.toFixed(1)}%</td><td class="${cls}">${txt}</td></tr>`;
+            });
+        }
+    </script>
+</body>
+</html>

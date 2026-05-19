@@ -1,0 +1,36 @@
+# Залежності
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Змінні середовища
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Логи
+logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Тимчасові файли
+tmp/
+temp/
+*.tmp
+
+# Згенеровані звіти
+reports/
+uploads/

@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Налаштування системи - AeroSpread Pro</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Space+Grotesk:wght@300;500;700&display=swap');
+        
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #1a1f3a;
+            --tertiary-bg: #16213e;
+            --accent: #00d4ff;
+            --accent-secondary: #ff6b00;
+            --text-primary: #ffffff;
+            --text-secondary: #8892b0;
+            --border: #233554;
+            --success: #64ffda;
+            --warning: #ffab00;
+            --danger: #ff5555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--secondary-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        .back-link:hover {
+            color: var(--accent);
+        }
+
+        .save-btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            border: none;
+            border-radius: 8px;
+            color: var(--primary-bg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+
+        .settings-nav {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .nav-title {
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 212, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .nav-icon {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .settings-content {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .content-section {
+            display: none;
+            padding: 2rem;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .settings-group {
+            margin-bottom: 3rem;
+        }
+
+        .group-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-label {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .setting-description {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .setting-control {
+            margin-left: 2rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .form-input {
+            padding: 0.5rem 0.75rem;
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            min-width: 200px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.1);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            background: var(--tertiary-bg);
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .btn:hover {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .btn.danger {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .btn.danger:hover {
+            background: rgba(255, 85, 85, 0.1);
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .users-table th {
+            background: var(--tertiary-bg);
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .user-role {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .role-admin {
+            background: rgba(255, 107, 0, 0.1);
+            color: var(--accent-secondary);
+            border: 1px solid var(--accent-secondary);
+        }
+
+        .role-expert {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .role-operator {
+            background: rgba(100, 255, 218, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .status-online {
+            color: var(--success);
+        }
+
+        .status-offline {
+            color: var(--text-secondary);
+        }
+
+        .database-item {
+            padding: 1rem;
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .database-info h4 {
+            margin-bottom: 0.25rem;
+        }
+
+        .database-info p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .database-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-connected {
+            background: var(--success);
+        }
+
+        .status-disconnected {
+            background: var(--danger);
+        }
+
+        .system-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            padding: 1.5rem;
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .info-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .logs-container {
+            background: var(--primary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .log-entry {
+            margin-bottom: 0.25rem;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .log-timestamp {
+            color: var(--text-secondary);
+        }
+
+        .log-level {
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            margin: 0 0.5rem;
+        }
+
+        .log-info {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent);
+        }
+
+        .log-warning {
+            background: rgba(255, 171, 0, 0.1);
+            color: var(--warning);
+        }
+
+        .log-error {
+            background: rgba(255, 85, 85, 0.1);
+            color: var(--danger);
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .backup-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+
+        .backup-info h4 {
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .backup-info p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .settings-nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <a href="dashboard.html" class="back-link">
+                    ← Назад до меню
+                </a>
+                <h1 class="page-title">Налаштування системи</h1>
+                <p class="page-subtitle">Конфігурація та управління системою AeroSpread Pro</p>
+            </div>
+            <button class="save-btn" onclick="saveSettings()">💾 Зберегти зміни</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav class="settings-nav">
+            <h3 class="nav-title">Категорії</h3>
+            
+            <div class="nav-item active" onclick="showSection('general', this)">
+                <span class="nav-icon">⚙️</span>
+                Загальні
+            </div>
+            <div class="nav-item" onclick="showSection('users', this)">
+                <span class="nav-icon">👥</span>
+                Користувачі
+            </div>
+            <div class="nav-item" onclick="showSection('models', this)">
+                <span class="nav-icon">🧮</span>
+                Моделі
+            </div>
+            <div class="nav-item" onclick="showSection('data', this)">
+                <span class="nav-icon">🗄️</span>
+                База даних
+            </div>
+            <div class="nav-item" onclick="showSection('security', this)">
+                <span class="nav-icon">🔒</span>
+                Безпека
+            </div>
+            <div class="nav-item" onclick="showSection('system', this)">
+                <span class="nav-icon">💻</span>
+                Система
+            </div>
+            <div class="nav-item" onclick="showSection('backup', this)">
+                <span class="nav-icon">💾</span>
+                Резервне копіювання
+            </div>
+            <div class="nav-item" onclick="showSection('logs', this)">
+                <span class="nav-icon">📋</span>
+                Логи
+            </div>
+        </nav>
+
+        <div class="settings-content">
+            <!-- Загальні налаштування -->
+            <div class="content-section active" id="general">
+                <div class="section-header">
+                    <h2 class="section-title">Загальні налаштування</h2>
+                    <p class="section-description">
+                        Основні параметри системи та інтерфейсу користувача
+                    </p>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="group-title">Інтерфейс</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Темна тема</div>
+                            <div class="setting-description">Використовувати темну тему інтерфейсу</div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Мова інтерфейсу</div>
+                            <div class="setting-description">Основна мова системи</div>
+                        </div>
+                        <div class="setting-control">
+                            <select class="form-input form-select">
+                                <option value="uk" selected>Українська</option>
+                                <option value="en">English</option>
+                                <option value="ru">Русский</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Одиниці вимірювання</div>
+                            <div class="setting-description">Система одиниць для відображення результатів</div>
+                        </div>
+                        <div class="setting-control">
+                            <select class="form-input form-select">
+                                <option value="metric" selected>Метрична</option>
+                                <option value="imperial">Імперська</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="group-title">Розрахунки</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Автозбереження проектів</div>
+                            <div class="setting-description">Автоматично зберігати параметри проектів</div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Максимальний час розрахунку</div>
+                            <div class="setting-description">Обмеження часу для складних розрахунків</div>
+                        </div>
+                        <div class="setting-control">
+                            <input type="number" class="form-input" value="30" min="5" max="120"> хв
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Точність розрахунків</div>
+                            <div class="setting-description">Компроміс між швидкістю та точністю</div>
+                        </div>
+                        <div class="setting-control">
+                            <select class="form-input form-select">
+                                <option value="fast">Швидкий</option>
+                                <option value="balanced" selected>Збалансований</option>
+                                <option value="precise">Точний</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Користувачі -->
+            <div class="content-section" id="users">
+                <div class="section-header">
+                    <h2 class="section-title">Управління користувачами</h2>
+                    <p class="section-description">
+                        Налаштування облікових записів та прав доступу
+                    </p>
+                </div>
+
+                <div class="settings-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 class="group-title">Активні користувачі</h3>
+                        <button class="btn" onclick="addUser()">➕ Додати користувача</button>
+                    </div>
+                    
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Ім'я</th>
+                                <th>Роль</th>
+                                <th>Статус</th>
+                                <th>Останній вхід</th>
+                                <th>Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Олексій Петренко</td>
+                                <td><span class="user-role role-admin">Адмін</span></td>
+                                <td><span class="status-online">● Онлайн</span></td>
+                                <td>Зараз</td>
+                                <td>
+                                    <div class="button-group">
+                                        <button class="btn">Редагувати</button>
+                                        <button class="btn danger">Заблокувати</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Марина Коваленко</td>
+                                <td><span class="user-role role-expert">Експерт</span></td>
+                                <td><span class="status-online">● Онлайн</span></td>
+                                <td>5 хв назад</td>
+                                <td>
+                                    <div class="button-group">
+                                        <button class="btn">Редагувати</button>
+                                        <button class="btn danger">Заблокувати</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Ігор Сидоренко</td>
+                                <td><span class="user-role role-operator">Оператор</span></td>
+                                <td><span class="status-offline">○ Офлайн</span></td>
+                                <td>1 год назад</td>
+                                <td>
+                                    <div class="button-group">
+                                        <button class="btn">Редагувати</button>
+                                        <button class="btn danger">Заблокувати</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Моделі -->
+            <div class="content-section" id="models">
+                <div class="section-header">
+                    <h2 class="section-title">Налаштування моделей</h2>
+                    <p class="section-description">
+                        Конфігурація обчислювальних моделей та алгоритмів
+                    </p>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="group-title">Гауссова модель</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Увімкнена за замовчуванням</div>
+                            <div class="setting-description">Використовувати як основну модель</div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Розмір сітки</div>
+                            <div class="setting-description">Кількість точок для розрахунків</div>
+                        </div>
+                        <div class="setting-control">
+                            <select class="form-input form-select">
+                                <option value="50x50">50x50 (швидко)</option>
+                                <option value="100x100" selected>100x100 (стандарт)</option>
+                                <option value="200x200">200x200 (точно)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="group-title">Лагранжева модель</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Доступна для використання</div>
+                            <div class="setting-description">Дозволити використання лагранжевої моделі</div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Кількість частинок</div>
+                            <div class="setting-description">Число частинок для моделювання</div>
+                        </div>
+                        <div class="setting-control">
+                            <input type="number" class="form-input" value="1000" min="100" max="10000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- База даних -->
+            <div class="content-section" id="data">
+                <div class="section-header">
+                    <h2 class="section-title">Управління базами даних</h2>
+                    <p class="section-description">
+                        Статус підключень та синхронізація даних
+                    </p>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="group-title">Підключені джерела</h3>
+                    
+                    <div class="database-item">
+                        <div class="database-info">
+                            <h4>База речовин</h4>
+                            <p>Каталог хімічних речовин та їх властивостей</p>
+                        </div>
+                        <div class="database-status">
+                            <div class="status-dot status-connected"></div>
+                            <span>Підключено</span>
+                        </div>
+                    </div>
+                    
+                    <div class="database-item">
+                        <div class="database-info">
+                            <h4>Метеорологічні дані</h4>
+                            <p>Актуальні та історичні метеодані</p>
+                        </div>
+                        <div class="database-status">
+                            <div class="status-dot status-connected"></div>
+                            <span>Підключено</span>
+                        </div>
+                    </div>
+                    
+                    <div class="database-item">
+                        <div class="database-info">
+                            <h4>Топографічні карти</h4>
+                            <p>Цифрові моделі рельєфу</p>
+                        </div>
+                        <div class="database-status">
+                            <div class="status-dot status-disconnected"></div>
+                            <span>Відключено</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Безпека -->
+            <div class="content-section" id="security">
+                <div class="section-header">
+                    <h2 class="section-title">Налаштування безпеки</h2>
+                    <p class="section-description">
+                        Параметри захисту та контролю доступу
+                    </p>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="group-title">Аутентифікація</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Двофакторна аутентифікація</div>
+                            <div class="setting-description">Обов'язкова 2FA для всіх користувачів</div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Час сесії</div>
+                            <div class="setting-description">Автоматичний вихід через неактивність</div>
+                        </div>
+                        <div class="setting-control">
+                            <select class="form-input form-select">
+                                <option value="30">30 хвилин</option>
+                                <option value="60" selected>1 година</option>
+                                <option value="240">4 години</option>
+                                <option value="480">8 годин</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="group-title">Аудит</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Логування дій</div>
+                            <div class="setting-description">Записувати всі дії користувачів</div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Система -->
+            <div class="content-section" id="system">
+                <div class="section-header">
+                    <h2 class="section-title">Системна інформація</h2>
+                    <p class="section-description">
+                        Статус системи та продуктивність
+                    </p>
+                </div>
+
+                <div class="system-info">
+                    <div class="info-card">
+                        <div class="info-title">Версія системи</div>
+                        <div class="info-value">v2.1.4</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-title">Час роботи</div>
+                        <div class="info-value">15д 8г 42м</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-title">Використання ЦП</div>
+                        <div class="info-value">23%</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-title">Використання RAM</div>
+                        <div class="info-value">4.2/16 ГБ</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-title">Дискове простір</div>
+                        <div class="info-value">157/500 ГБ</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-title">Активні сесії</div>
+                        <div class="info-value">3</div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="group-title">Обслуговування</h3>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Автоматичні оновлення</div>
+                            <div class="setting-description">Встановлювати оновлення системи автоматично</div>
+                        </div>
+                        <div class="setting-control">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-label">Очищення тимчасових файлів</div>
+                            <div class="setting-description">Регулярне видалення застарілих даних</div>
+                        </div>
+                        <div class="setting-control">
+                            <div class="button-group">
+                                <button class="btn" onclick="cleanTemp()">Очистити зараз</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Резервне копіювання -->
+            <div class="content-section" id="backup">
+                <div class="section-header">
+                    <h2 class="section-title">Резервне копіювання</h2>
+                    <p class="section-description">
+                        Автоматичні та ручні резервні копії
+                    </p>
+                </div>
+
+                <div class="settings-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 class="group-title">Доступні резервні копії</h3>
+                        <button class="btn" onclick="createBackup()">🔄 Створити копію</button>
+                    </div>
+                    
+                    <div class="backup-item">
+                        <div class="backup-info">
+                            <h4>Повна резервна копія</h4>
+                            <p>22.04.2024, 14:00 | Розмір: 2.8 ГБ</p>
+                        </div>
+                        <div class="button-group">
+                            <button class="btn">Відновити</button>
+                            <button class="btn">Завантажити</button>
+                        </div>
+                    </div>
+                    
+                    <div class="backup-item">
+                        <div class="backup-info">
+                            <h4>Інкрементальна копія</h4>
+                            <p>22.04.2024, 02:00 | Розмір: 234 МБ</p>
+                        </div>
+                        <div class="button-group">
+                            <button class="btn">Відновити</button>
+                            <button class="btn">Завантажити</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Логи -->
+            <div class="content-section" id="logs">
+                <div class="section-header">
+                    <h2 class="section-title">Системні логи</h2>
+                    <p class="section-description">
+                        Журнал подій та помилок системи
+                    </p>
+                </div>
+
+                <div class="settings-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 class="group-title">Останні події</h3>
+                        <div class="button-group">
+                            <button class="btn" onclick="exportLogs()">📥 Експорт</button>
+                            <button class="btn danger" onclick="clearLogs()">🗑️ Очистити</button>
+                        </div>
+                    </div>
+                    
+                    <div class="logs-container" id="logsContainer">
+                        <div class="log-entry">
+                            <span class="log-timestamp">2024-04-22 14:32:15</span>
+                            <span class="log-level log-info">INFO</span>
+                            <span>Користувач 'expert' увійшов до системи</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-timestamp">2024-04-22 14:31:42</span>
+                            <span class="log-level log-info">INFO</span>
+                            <span>Розпочато моделювання викиду ID: 15623</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-timestamp">2024-04-22 14:30:18</span>
+                            <span class="log-level log-warning">WARN</span>
+                            <span>Високе навантаження на ЦП: 87%</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-timestamp">2024-04-22 14:28:33</span>
+                            <span class="log-level log-info">INFO</span>
+                            <span>Завершено резервне копіювання бази даних</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-timestamp">2024-04-22 14:25:07</span>
+                            <span class="log-level log-error">ERROR</span>
+                            <span>Помилка підключення до метеосервісу: timeout</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showSection(sectionId, navItem) {
+            // Приховати всі секції
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Видалити активний клас з навігації
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Показати обрану секцію
+            document.getElementById(sectionId).classList.add('active');
+            navItem.classList.add('active');
+        }
+
+        function saveSettings() {
+            // Симуляція збереження налаштувань
+            const btn = document.querySelector('.save-btn');
+            const originalText = btn.textContent;
+            
+            btn.textContent = '💾 Збереження...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.textContent = '✅ Збережено!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }, 1500);
+            }, 2000);
+        }
+
+        function addUser() {
+            alert('Додавання нового користувача...\n(Функція в розробці)');
+        }
+
+        function cleanTemp() {
+            if (confirm('Очистити тимчасові файли?\nЦя дія не може бути скасована.')) {
+                alert('Тимчасові файли очищено.\nЗвільнено: 1.2 ГБ');
+            }
+        }
+
+        function createBackup() {
+            if (confirm('Створити повну резервну копію?\nЦе може зайняти кілька хвилин.')) {
+                alert('Резервне копіювання розпочато...\nВи отримаєте сповіщення після завершення.');
+            }
+        }
+
+        function exportLogs() {
+            alert('Експорт логів...\n(Функція в розробці)');
+        }
+
+        function clearLogs() {
+            if (confirm('Очистити всі логи?\nЦю дію неможливо скасувати.')) {
+                document.getElementById('logsContainer').innerHTML = 
+                    '<div class="log-entry"><span class="log-timestamp">' + 
+                    new Date().toLocaleString('uk-UA') + 
+                    '</span><span class="log-level log-info">INFO</span><span>Логи очищено користувачем</span></div>';
+            }
+        }
+
+        // Симуляція додавання нових логів
+        function addRandomLog() {
+            const logTypes = ['INFO', 'WARNING', 'ERROR'];
+            const messages = [
+                'Користувач виконав розрахунок',
+                'Оновлено метеодані',
+                'Створено новий проект',
+                'Експортовано звіт',
+                'Помилка підключення до API',
+                'Превищено ліміт запитів'
+            ];
+            
+            const logContainer = document.getElementById('logsContainer');
+            const timestamp = new Date().toLocaleString('uk-UA');
+            const randomType = logTypes[Math.floor(Math.random() * logTypes.length)];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <span class="log-timestamp">${timestamp}</span>
+                <span class="log-level log-${randomType.toLowerCase()}">${randomType}</span>
+                <span>${randomMessage}</span>
+            `;
+            
+            logContainer.insertBefore(logEntry, logContainer.firstChild);
+            
+            // Обмежити кількість відображених логів
+            const logs = logContainer.querySelectorAll('.log-entry');
+            if (logs.length > 50) {
+                logContainer.removeChild(logs[logs.length - 1]);
+            }
+        }
+
+        // Додавати новий лог кожні 10-30 секунд
+        setInterval(() => {
+            if (Math.random() > 0.7) {
+                addRandomLog();
+            }
+        }, 15000);
+    </script>
+</body>
+</html>

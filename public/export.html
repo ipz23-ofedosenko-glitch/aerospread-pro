@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Звіт — AeroSpread Pro</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
+
+        :root {
+            --bg: #0a0e1a;
+            --bg2: #111827;
+            --bg3: #1a2235;
+            --border: #1e2d47;
+            --accent: #00d4ff;
+            --text: #e8edf5;
+            --muted: #5a6a85;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        .header {
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            padding: 1.25rem 2rem;
+            position: sticky; top: 0; z-index: 50;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .header-left { display: flex; align-items: center; gap: 1.5rem; }
+        .back-link {
+            color: var(--muted); text-decoration: none; font-size: 0.85rem;
+            display: flex; align-items: center; gap: 0.4rem; transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--accent); }
+        .page-title { font-size: 1.4rem; font-weight: 700; }
+        .page-sub   { color: var(--muted); font-size: 0.8rem; margin-top: 0.15rem; }
+        .btn-primary {
+            padding: 0.65rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent), #0099cc);
+            border: none; border-radius: 8px;
+            color: #0a0e1a; font-weight: 700; font-size: 0.875rem;
+            cursor: pointer; font-family: inherit; transition: all 0.2s;
+        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,212,255,.3); }
+
+        /* LAYOUT */
+        .layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            height: calc(100vh - 65px);
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            background: var(--bg2);
+            border-right: 1px solid var(--border);
+            overflow-y: auto; padding: 1.5rem;
+            display: flex; flex-direction: column; gap: 1.25rem;
+        }
+        .data-pill {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            background: rgba(0,212,255,.05); border: 1px solid rgba(0,212,255,.15);
+            border-radius: 8px; font-size: 0.8rem; color: var(--accent);
+        }
+        .dot-live {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #00e5a0; box-shadow: 0 0 6px #00e5a0;
+            animation: blink 1.8s ease-in-out infinite; flex-shrink: 0;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .section-card {
+            background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+        }
+        .section-head {
+            padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border);
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.5px; color: var(--muted);
+        }
+        .toggle-list { padding: 0.375rem 0; }
+        .toggle-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.55rem 1.25rem;
+        }
+        .toggle-label {
+            font-size: 0.85rem; color: var(--text);
+            display: flex; align-items: center; gap: 0.6rem;
+        }
+        .toggle-label .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--muted); transition: background 0.2s; flex-shrink: 0;
+        }
+        .toggle-row.active .dot { background: var(--accent); }
+
+        .switch { position: relative; width: 38px; height: 20px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .switch .track {
+            position: absolute; inset: 0; background: var(--border);
+            border-radius: 20px; transition: background 0.25s; cursor: pointer;
+        }
+        .switch .thumb {
+            position: absolute; top: 3px; left: 3px;
+            width: 14px; height: 14px; background: white; border-radius: 50%;
+            transition: transform 0.25s; pointer-events: none;
+        }
+        .switch input:checked ~ .track { background: var(--accent); }
+        .switch input:checked ~ .thumb { transform: translateX(18px); }
+
+        .meta-fields { padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.875rem; }
+        .field-label { font-size: 0.7rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 0.3rem; }
+        .field-input {
+            width: 100%; padding: 0.55rem 0.75rem;
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 7px; color: var(--text); font-size: 0.875rem;
+            font-family: inherit; transition: border-color 0.2s;
+        }
+        .field-input:focus { outline: none; border-color: var(--accent); }
+        .field-input::placeholder { color: var(--muted); }
+
+        .btn-print {
+            width: 100%; padding: 0.875rem;
+            background: linear-gradient(135deg, var(--accent), #0099cc);
+            border: none; border-radius: 10px;
+            color: #0a0e1a; font-weight: 700; font-size: 0.9rem;
+            cursor: pointer; font-family: inherit; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+        .btn-print:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,212,255,.35); }
+
+        /* PREVIEW */
+        .preview-wrap {
+            overflow-y: auto; background: #d0d0d0; padding: 2.5rem;
+        }
+
+        /* ══════════════════════════════════════════
+           REPORT DOCUMENT — official B&W
+        ══════════════════════════════════════════ */
+        .report-doc {
+            max-width: 794px; margin: 0 auto;
+            background: #fff; color: #000;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 11pt; line-height: 1.6;
+            box-shadow: 0 4px 24px rgba(0,0,0,.25);
+        }
+
+        .r-stamp {
+            background: #111; color: #fff;
+            text-align: center; padding: 0.35rem 2rem;
+            font-size: 7pt; font-family: Arial, sans-serif;
+            letter-spacing: 2.5px; text-transform: uppercase; font-weight: 700;
+        }
+
+        .r-header { padding: 1.75rem 2.5rem 1.25rem; border-bottom: 3px solid #000; }
+        .r-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+        .r-header-org { font-size: 8.5pt; font-family: Arial, sans-serif; color: #222; line-height: 1.6; max-width: 52%; }
+        .r-header-reg { font-size: 8pt; font-family: Arial, sans-serif; color: #444; text-align: right; line-height: 1.7; }
+        .r-header-reg .docnum { font-size: 12pt; font-weight: 700; font-family: 'IBM Plex Mono', monospace; color: #000; }
+
+        .r-doc-title { text-align: center; margin: 0.25rem 0 0; }
+        .r-doc-title-main {
+            font-size: 13pt; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; line-height: 1.35;
+        }
+        .r-doc-title-sub { font-size: 10pt; color: #444; margin-top: 0.35rem; font-style: italic; }
+
+        .r-header-meta {
+            display: flex; gap: 1.75rem; flex-wrap: wrap;
+            margin-top: 1rem; padding-top: 0.875rem; border-top: 1px solid #ccc;
+        }
+        .r-meta-k { font-size: 7pt; font-family: Arial, sans-serif; color: #777; text-transform: uppercase; letter-spacing: 0.5px; }
+        .r-meta-v { font-size: 9pt; font-weight: 700; font-family: Arial, sans-serif; }
+
+        .r-body { padding: 1.5rem 2.5rem 2rem; }
+
+        .r-section { margin-bottom: 1.875rem; page-break-inside: avoid; break-inside: avoid; }
+        .r-sec-title {
+            font-size: 9.5pt; font-weight: 700; font-family: Arial, sans-serif;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1.5px solid #000;
+            padding-bottom: 0.3rem; margin-bottom: 0.875rem;
+        }
+
+        /* Two-column cells grid */
+        .r-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            border: 1px solid #bbb;
+        }
+        .r-cell {
+            padding: 0.45rem 0.75rem;
+            border-right: 1px solid #ddd; border-bottom: 1px solid #ddd;
+        }
+        .r-cell:nth-child(2n) { border-right: none; }
+        .r-cell:nth-last-child(-n+2) { border-bottom: none; }
+        .r-ck { font-size: 7.5pt; font-family: Arial, sans-serif; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.1rem; }
+        .r-cv { font-size: 9.5pt; font-weight: 700; color: #000; }
+        .r-cv.mono { font-family: 'IBM Plex Mono', monospace; font-size: 9pt; }
+
+        /* Classic key-value table */
+        .r-kv {
+            width: 100%; border-collapse: collapse; font-size: 9.5pt;
+        }
+        .r-kv td { padding: 0.35rem 0.75rem; border: 1px solid #ccc; }
+        .r-kv td:first-child { background: #f2f2f2; font-weight: 700; font-family: Arial, sans-serif; font-size: 8.5pt; width: 40%; }
+        .r-kv tr:nth-child(even) td:last-child { background: #fafafa; }
+
+        /* Results band */
+        .r-results {
+            display: grid; grid-template-columns: repeat(4,1fr);
+            border: 2px solid #000; margin-bottom: 1rem;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .r-rbox { padding: 0.875rem 0.75rem; text-align: center; border-right: 1px solid #999; }
+        .r-rbox:last-child { border-right: none; }
+        .r-rbox.dark  { background: #111; color: #fff; }
+        .r-rbox.mid   { background: #555; color: #fff; }
+        .r-rbox.light { background: #f0f0f0; }
+        .r-rl { font-size: 6.5pt; font-family: Arial, sans-serif; text-transform: uppercase; letter-spacing: 0.5px; opacity: .7; margin-bottom: 0.4rem; }
+        .r-rv { font-size: 16pt; font-weight: 700; font-family: 'IBM Plex Mono', monospace; line-height: 1.2; }
+        .r-ru { font-size: 7pt; font-family: Arial, sans-serif; opacity: .7; margin-top: 0.15rem; }
+        .r-rb {
+            display: inline-block; margin-top: 0.4rem;
+            padding: 0.1rem 0.45rem; border: 1px solid currentColor;
+            font-size: 6.5pt; font-weight: 700; font-family: Arial, sans-serif;
+            text-transform: uppercase; letter-spacing: 0.5px; border-radius: 2px;
+        }
+
+        /* Legend */
+        .r-legend {
+            display: flex; gap: 1rem; flex-wrap: wrap;
+            padding: 0.5rem 0.75rem; border: 1px solid #ccc; background: #f9f9f9;
+        }
+        .r-leg-title { font-size: 7.5pt; font-family: Arial, sans-serif; font-weight: 700; width: 100%; }
+        .r-leg-item  { display: flex; align-items: center; gap: 0.35rem; font-size: 7.5pt; font-family: Arial, sans-serif; }
+        .r-leg-box   { width: 18px; height: 10px; border: 1px solid #999; flex-shrink: 0; }
+
+        /* Concentration table */
+        .r-ctable { width: 100%; border-collapse: collapse; font-size: 9pt; font-family: Arial, sans-serif; }
+        .r-ctable th {
+            background: #111; color: #fff; padding: 0.45rem 0.75rem;
+            text-align: center; font-size: 8pt; font-weight: 700;
+            border: 1px solid #000; letter-spacing: 0.3px;
+        }
+        .r-ctable td { padding: 0.35rem 0.75rem; border: 1px solid #ccc; text-align: center; }
+        .r-ctable td:nth-child(-n+2) { font-family: 'IBM Plex Mono', monospace; font-size: 8.5pt; }
+        .r-ctable tr:nth-child(even) td { background: #f7f7f7; }
+        .td-ok   { }
+        .td-warn { font-weight: 700; }
+        .td-bad  { font-weight: 700; background: #e0e0e0 !important; }
+
+        /* Signature */
+        .r-sign {
+            margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ccc;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem;
+            font-size: 9pt; font-family: Arial, sans-serif;
+        }
+        .r-sign-line { border-bottom: 1px solid #000; margin: 1.5rem 0 0.2rem; }
+        .r-sign-hint { font-size: 7.5pt; color: #666; }
+
+        /* Footer */
+        .r-footer {
+            border-top: 2px solid #000; background: #f2f2f2;
+            padding: 0.6rem 2.5rem;
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 7.5pt; font-family: Arial, sans-serif; color: #666;
+        }
+
+        /* PRINT */
+        @media print {
+            body { background: white; }
+            .header, .sidebar { display: none !important; }
+            .layout { display: block; height: auto; }
+            .preview-wrap { background: white; padding: 0; overflow: visible; }
+            .report-doc { box-shadow: none; max-width: 100%; font-size: 10pt; }
+            .r-stamp, .r-rbox.dark, .r-rbox.mid, .r-ctable th {
+                -webkit-print-color-adjust: exact; print-color-adjust: exact;
+            }
+            @page { margin: 1.5cm 0 0 0; size: A4; }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="header-left">
+        <a href="calculation.html" class="back-link">← Назад</a>
+        <div>
+            <div class="page-title">Звіт</div>
+            <div class="page-sub">Офіційний PDF-документ</div>
+        </div>
+    </div>
+    <button class="btn-primary" onclick="window.print()">📥 Зберегти PDF</button>
+</header>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+<div id="dataStatus" style="display:none"></div>
+
+        <div class="section-card">
+            <div class="section-head">☰ &nbsp;Розділи звіту</div>
+            <div class="toggle-list">
+                <div class="toggle-row active" data-sec="general">
+                    <span class="toggle-label"><span class="dot"></span>Загальна інформація</span>
+                    <label class="switch">
+                        <input type="checkbox" checked onchange="tog('general',this.checked)">
+                        <span class="track"></span><span class="thumb"></span>
+                    </label>
+                </div>
+                <div class="toggle-row active" data-sec="source">
+                    <span class="toggle-label"><span class="dot"></span>Параметри джерела</span>
+                    <label class="switch">
+                        <input type="checkbox" checked onchange="tog('source',this.checked)">
+                        <span class="track"></span><span class="thumb"></span>
+                    </label>
+                </div>
+                <div class="toggle-row active" data-sec="meteo">
+                    <span class="toggle-label"><span class="dot"></span>Метеорологічні умови</span>
+                    <label class="switch">
+                        <input type="checkbox" checked onchange="tog('meteo',this.checked)">
+                        <span class="track"></span><span class="thumb"></span>
+                    </label>
+                </div>
+                <div class="toggle-row active" data-sec="results">
+                    <span class="toggle-label"><span class="dot"></span>Результати розрахунку</span>
+                    <label class="switch">
+                        <input type="checkbox" checked onchange="tog('results',this.checked)">
+                        <span class="track"></span><span class="thumb"></span>
+                    </label>
+                </div>
+                <div class="toggle-row active" data-sec="table">
+                    <span class="toggle-label"><span class="dot"></span>Таблиця концентрацій</span>
+                    <label class="switch">
+                        <input type="checkbox" checked onchange="tog('table',this.checked)">
+                        <span class="track"></span><span class="thumb"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-head">✏️ &nbsp;Реквізити</div>
+            <div class="meta-fields">
+                <div>
+                    <div class="field-label">Організація</div>
+                    <input class="field-input" id="fOrg" placeholder="Назва організації" oninput="build()">
+                </div>
+                <div>
+                    <div class="field-label">Відповідальна особа</div>
+                    <input class="field-input" id="fAuthor" placeholder="ПІБ" oninput="build()">
+                </div>
+                <div>
+                    <div class="field-label">Посада</div>
+                    <input class="field-input" id="fRole" placeholder="Посада" oninput="build()">
+                </div>
+                <div>
+                    <div class="field-label">Реєстраційний №</div>
+                    <input class="field-input" id="fDocNum" placeholder="напр. 2025-ЕК-001" oninput="build()">
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-print" onclick="window.print()">🖨️ Друк / Зберегти PDF</button>
+
+    </aside>
+
+    <!-- PREVIEW -->
+    <div class="preview-wrap">
+        <div class="report-doc" id="reportDoc"></div>
+    </div>
+</div>
+
+<script>
+const WIND = {
+    N:'Північний (N)', NE:'Північно-східний (NE)', E:'Східний (E)',
+    SE:'Південно-східний (SE)', S:'Південний (S)', SW:'Південно-західний (SW)',
+    W:'Західний (W)', NW:'Північно-західний (NW)'
+};
+const STAB = {
+    A:'A — Дуже нестійка', B:'B — Нестійка', C:'C — Слабко нестійка',
+    D:'D — Нейтральна', E:'E — Слабко стійка', F:'F — Стійка'
+};
+
+// Gaussian (mirrors calculation.html)
+function gPlume(Q,H,u,x,y,sy,sz){
+    if(x<=0) return 0;
+    return (Q/(2*Math.PI*u*sy*sz))*Math.exp(-0.5*(y/sy)**2)*Math.exp(-0.5*(H/sz)**2)*1000;
+}
+function sigma(sc){
+    const m={A:{ya:0.22,yb:.894,za:.20,zb:.894},B:{ya:.16,yb:.894,za:.12,zb:.894},
+             C:{ya:.11,yb:.894,za:.08,zb:.894},D:{ya:.08,yb:.894,za:.06,zb:.894},
+             E:{ya:.06,yb:.894,za:.03,zb:.894},F:{ya:.04,yb:.894,za:.016,zb:.894}};
+    const c=m[sc]||m.D;
+    return {y:x=>c.ya*x**c.yb, z:x=>c.za*x**c.zb};
+}
+function calcAll(p){
+    const Q=p.emissionRate,H=p.sourceHeight,u=p.windSpeed;
+    const mac=parseFloat(p.substance?.mac_single)||0.1;
+    const s=sigma(p.stabilityClass);
+    let maxC=0,maxDist=0,dangerR=0;
+    for(let x=10;x<=5000;x+=10){
+        const C=gPlume(Q,H,u,x,0,s.y(x),s.z(x));
+        if(C>maxC){maxC=C;maxDist=x;}
+        if(C>mac) dangerR=x;
+    }
+    const rows=[100,250,500,1000,1500,2000,3000,5000].map(d=>{
+        const C=gPlume(Q,H,u,d,0,s.y(d),s.z(d));
+        return {d,C,pct:C/mac*100};
+    });
+    return {maxC,maxDist,dangerR,ratio:maxC/mac,mac,rows};
+}
+
+let P=null, R=null;
+const V={general:true,source:true,meteo:true,results:true,table:true};
+
+function tog(id,val){
+    V[id]=val;
+    const r=document.querySelector(`[data-sec="${id}"]`);
+    if(r) r.classList.toggle('active',val);
+    build();
+}
+
+function e(s){ return String(s||'—').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+function kv(rows){
+    return `<table class="r-kv">${rows.map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('')}</table>`;
+}
+function grid(cells){
+    return `<div class="r-grid">${cells.map(([k,v,m])=>
+        `<div class="r-cell"><div class="r-ck">${k}</div><div class="r-cv${m?' mono':''}">${v}</div></div>`
+    ).join('')}</div>`;
+}
+function concRow(r){
+    let cls='td-ok',txt='Безпечно';
+    if(r.pct>500){cls='td-bad';txt='Дуже небезпечно';}
+    else if(r.pct>100){cls='td-warn';txt='Небезпечно';}
+    return `<tr><td>${r.d}</td><td>${r.C.toFixed(6)}</td><td class="${cls}">${r.pct.toFixed(1)}%</td><td class="${cls}">${txt}</td></tr>`;
+}
+
+function build(){
+    const doc=document.getElementById('reportDoc');
+    if(!P){
+        doc.innerHTML=`<div style="padding:4rem;text-align:center;font-family:Arial,sans-serif;color:#555;">
+            <div style="font-size:2.5rem;margin-bottom:1rem">📄</div>
+            <p style="font-size:10pt">Немає даних розрахунку.<br>Виконайте моделювання та поверніться сюди.</p>
+            <a href="calculation.html" style="color:#000;font-size:9pt;margin-top:1rem;display:inline-block">← Перейти до розрахунку</a>
+        </div>`;
+        return;
+    }
+
+    const calcDate = P.calculationDate ? new Date(P.calculationDate) : new Date();
+    const ds=calcDate.toLocaleDateString('uk-UA',{day:'2-digit',month:'long',year:'numeric'});
+    const ts=calcDate.toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+
+    const org    =document.getElementById('fOrg').value;
+    const author =document.getElementById('fAuthor').value;
+    const role   =document.getElementById('fRole').value;
+    const docnum =document.getElementById('fDocNum').value||'—';
+
+    const subst=P.substance?.name_ua
+        ?`${P.substance.name_ua}${P.substance.name_en?' ('+P.substance.name_en+')':''}`
+        :'Не вказано';
+
+    const danger=R.ratio>10?'КРИТИЧНО':R.ratio>1?'ПЕРЕВИЩЕННЯ':'НОРМА';
+    const dClass=R.ratio>10?'dark':R.ratio>1?'mid':'light';
+
+    let h='';
+
+    h+=`<div class="r-stamp">AeroSpread Pro &nbsp;·&nbsp; Звіт про моделювання розповсюдження атмосферних забруднень</div>`;
+
+    // HEADER
+    h+=`<div class="r-header">
+        <div class="r-header-top">
+            <div class="r-header-org">
+                ${org?`<strong>${e(org)}</strong><br>`:''}
+                ${role&&author?`${e(role)}: ${e(author)}`:e(author)}
+            </div>
+            <div class="r-header-reg">
+                Реєстраційний №<br>
+                <span class="docnum">${e(docnum)}</span><br>
+                <span style="font-size:7.5pt">від ${ds}</span>
+            </div>
+        </div>
+        <div class="r-doc-title">
+            <div class="r-doc-title-main">Звіт про результати моделювання<br>розповсюдження атмосферних забруднень</div>
+            <div class="r-doc-title-sub">${e(P.objectName||'Об\'єкт не вказано')} &nbsp;·&nbsp; Гауссова дифузійна модель</div>
+        </div>
+        <div class="r-header-meta">
+            <div><div class="r-meta-k">Дата</div><div class="r-meta-v">${ds}</div></div>
+            <div><div class="r-meta-k">Час</div><div class="r-meta-v">${ts} UTC+3</div></div>
+            <div><div class="r-meta-k">Координати джерела</div><div class="r-meta-v">${parseFloat(P.latitude).toFixed(5)}°N, ${parseFloat(P.longitude).toFixed(5)}°E</div></div>
+            <div><div class="r-meta-k">Статус</div><div class="r-meta-v">${danger}</div></div>
+        </div>
+    </div>`;
+
+    h+=`<div class="r-body">`;
+
+    // 1. General
+    if(V.general) h+=`<div class="r-section">
+        <div class="r-sec-title">1. Загальна інформація</div>
+        ${kv([
+            ['Назва об\'єкта / підприємства', e(P.objectName||'—')],
+            ['Метод моделювання', 'Гауссова дифузійна модель (Gaussian Plume Model)'],
+            ['Координати джерела', `${parseFloat(P.latitude).toFixed(6)}°N, &nbsp;${parseFloat(P.longitude).toFixed(6)}°E`],
+            ['Дата та час розрахунку', `${ds}, ${ts} UTC+3`],
+            ['Виконавець', role&&author?`${e(role)}, ${e(author)}`:e(author||'—')],
+            ['Організація', e(org||'—')],
+        ])}
+    </div>`;
+
+    // 2. Source
+    if(V.source) h+=`<div class="r-section">
+        <div class="r-sec-title">2. Параметри джерела викиду</div>
+        ${grid([
+            ['Забруднююча речовина', e(subst)],
+            ['ГДК максимально разова', `${R.mac} мг/м³`],
+            ['Висота джерела', `${P.sourceHeight} м`],
+            ['Інтенсивність викиду', `${P.emissionRate} г/с`],
+            ['Модель дисперсії', 'Паскуїлл–Гіффорд (P-G)'],
+            ['Клас стійкості', e(STAB[P.stabilityClass]||P.stabilityClass)],
+        ])}
+    </div>`;
+
+    // 3. Meteo
+    if(V.meteo) h+=`<div class="r-section">
+        <div class="r-sec-title">3. Метеорологічні умови</div>
+        ${grid([
+            ['Напрямок вітру', e(WIND[P.windDirection]||P.windDirection)],
+            ['Швидкість вітру', `${P.windSpeed} м/с`],
+            ['Температура повітря', `${P.temperature} °C`],
+            ['Атмосферний тиск', `${P.pressure||1013} гПа`],
+            ['Відносна вологість', `${P.humidity||65} %`],
+            ['Клас стійкості атмосфери', e(STAB[P.stabilityClass]||P.stabilityClass)],
+        ])}
+    </div>`;
+
+    // 4. Results
+    if(V.results) h+=`<div class="r-section">
+        <div class="r-sec-title">4. Результати моделювання</div>
+        <div class="r-results">
+            <div class="r-rbox ${dClass}">
+                <div class="r-rl">Макс. концентрація</div>
+                <div class="r-rv">${R.maxC.toFixed(4)}</div>
+                <div class="r-ru">мг/м³</div>
+                <div class="r-rb">${danger}</div>
+            </div>
+            <div class="r-rbox ${R.ratio>1?'mid':'light'}">
+                <div class="r-rl">Перевищення ГДК</div>
+                <div class="r-rv">${R.ratio.toFixed(2)}</div>
+                <div class="r-ru">разів</div>
+                <div class="r-rb">${R.ratio>1?'ПЕРЕВИЩЕННЯ':'В НОРМІ'}</div>
+            </div>
+            <div class="r-rbox light">
+                <div class="r-rl">Відстань до максимуму</div>
+                <div class="r-rv">${R.maxDist}</div>
+                <div class="r-ru">м від джерела</div>
+            </div>
+            <div class="r-rbox ${R.dangerR>0?'mid':'light'}">
+                <div class="r-rl">Небезпечна зона</div>
+                <div class="r-rv">${R.dangerR||'< 100'}</div>
+                <div class="r-ru">${R.dangerR?'м (C > ГДК)':'м'}</div>
+            </div>
+        </div>
+    </div>`;
+
+    // 5. Concentration table
+    if(V.table) h+=`<div class="r-section">
+        <div class="r-sec-title">5. Концентрація по осі розповсюдження</div>
+        <table class="r-ctable">
+            <thead><tr>
+                <th>Відстань, м</th>
+                <th>Концентрація C, мг/м³</th>
+                <th>Частка від ГДК, %</th>
+                <th>Санітарна оцінка</th>
+            </tr></thead>
+            <tbody>${R.rows.map(concRow).join('')}</tbody>
+        </table>
+        <div style="margin-top:.5rem;font-size:7.5pt;font-family:Arial,sans-serif;color:#666">
+            * Розрахунок виконано вздовж осі факелу (y = 0). &nbsp;ГДК м.р. = ${R.mac} мг/м³.
+        </div>
+    </div>`;
+
+    // Signature
+    h+=`<div class="r-sign">
+        <div>
+            <div style="font-size:8.5pt;font-weight:700">${role?e(role):'Виконавець'}</div>
+            <div class="r-sign-line"></div>
+            <div class="r-sign-hint">${author?e(author):'(підпис, прізвище та ініціали)'}</div>
+        </div>
+        <div>
+            <div style="font-size:8.5pt;font-weight:700">Дата підписання</div>
+            <div class="r-sign-line"></div>
+            <div class="r-sign-hint">${ds}</div>
+        </div>
+    </div>`;
+
+    h+=`</div>`; // r-body
+
+    // Footer
+    h+=`<div class="r-footer">
+        <span>AeroSpread Pro &nbsp;·&nbsp; Гауссова дифузійна модель &nbsp;·&nbsp; Автоматично сформований документ</span>
+        <span>№&nbsp;${e(docnum)} &nbsp;·&nbsp; ${ds}</span>
+    </div>`;
+
+    doc.innerHTML=h;
+}
+
+// Convert DB row (from /api/simulation/results/:id) → params shape that calcAll() expects
+function dbRowToParams(row) {
+    return {
+        calculationDate: row.calculation_date || null,
+        objectName:      row.project_name || '—',
+        latitude:        row.latitude,
+        longitude:       row.longitude,
+        sourceHeight:    row.source_height,
+        emissionRate:    row.emission_rate,
+        windSpeed:       row.wind_speed,
+        windDirection:   row.wind_direction  || 'N',
+        temperature:     row.temperature,
+        pressure:        row.pressure        || 1013,
+        humidity:        row.humidity        || 65,
+        stabilityClass:  row.stability_class || 'D',
+        substance: {
+            name_ua:   row.substance_name    || row.substance || '—',
+            name_en:   row.substance_name_en || '',
+            mac_single: row.mac_single       || row.gdk_ratio
+                            ? (row.max_concentration / (row.gdk_ratio || 1)).toFixed(4)
+                            : '0.1'
+        },
+        // keep original DB results so we don't re-compute from scratch
+        _dbResults: {
+            maxC:      parseFloat(row.max_concentration) || 0,
+            maxDist:   parseFloat(row.max_distance)      || 0,
+            dangerR:   parseFloat(row.danger_radius)     || 0,
+            ratio:     parseFloat(row.gdk_ratio)         || 0,
+        }
+    };
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+    const statusEl = document.getElementById('dataStatus');
+    const projectId = new URLSearchParams(window.location.search).get('project');
+
+    if (projectId) {
+        // ── Load from DB via API ──────────────────────────────────────────
+        const token = localStorage.getItem('token');
+        if (!token) {
+            statusEl.innerHTML = '<span style="color:#ff4757">⚠ Не авторизовано</span>';
+            build(); return;
+        }
+        statusEl.innerHTML = '<span style="color:var(--muted)">⏳ Завантаження з бази даних…</span>';
+        try {
+            const resp = await fetch(`/api/simulation/results/${projectId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (resp.ok) {
+                const row = await resp.json();
+                P = dbRowToParams(row);
+                // Use stored DB results + recalculate table rows
+                const base = P._dbResults;
+                const mac  = parseFloat(P.substance.mac_single) || 0.1;
+                const s    = sigma(P.stabilityClass);
+                const Q=P.emissionRate, H=P.sourceHeight, u=P.windSpeed;
+                const rows = [100,250,500,1000,1500,2000,3000,5000].map(d => {
+                    const C = gPlume(Q,H,u,d,0,s.y(d),s.z(d));
+                    return {d, C, pct: C/mac*100};
+                });
+                R = { ...base, mac, rows };
+                statusEl.innerHTML = `<div class="dot-live"></div><span>Проект з бази даних: <strong>${P.objectName}</strong></span>`;
+            } else if (resp.status === 404) {
+                statusEl.innerHTML = '<span style="color:#ff4757">⚠ Проект не знайдено в БД</span>';
+            } else {
+                statusEl.innerHTML = '<span style="color:#ff4757">⚠ Помилка завантаження з API</span>';
+            }
+        } catch(err) {
+            console.error(err);
+            statusEl.innerHTML = '<span style="color:#ff4757">⚠ Помилка з\'єднання з сервером</span>';
+        }
+    } else {
+        // ── Fall back to last calculation in localStorage ─────────────────
+        try {
+            const s = localStorage.getItem('modelParameters');
+            if (s) {
+                P = JSON.parse(s);
+                R = calcAll(P);
+                statusEl.innerHTML = `<div class="dot-live"></div><span>Останній розрахунок (localStorage)</span>`;
+            } else {
+                statusEl.innerHTML = '<span style="color:#ff4757">⚠ Дані відсутні — виконайте розрахунок або оберіть проект</span>';
+            }
+        } catch(err) { console.error(err); }
+    }
+
+    build();
+});
+</script>
+</body>
+</html>

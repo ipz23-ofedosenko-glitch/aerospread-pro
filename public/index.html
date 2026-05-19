@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroSpread Pro - Програмне забезпечення моделювання аерозольних забруднень</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;700&family=Space+Grotesk:wght@300;500;700&display=swap');
+        
+        :root {
+            --primary-bg: #0a0e1a;
+            --secondary-bg: #1a1f3a;
+            --accent: #00d4ff;
+            --accent-secondary: #ff6b00;
+            --text-primary: #ffffff;
+            --text-secondary: #8892b0;
+            --border: #233554;
+            --success: #64ffda;
+            --warning: #ffab00;
+            --danger: #ff5555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .hero-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, #00d4ff15 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, #ff6b0015 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, #64ffda08 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4rem;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            color: var(--primary-bg);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 5rem;
+            padding: 4rem 0;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+            letter-spacing: -2px;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .features-section {
+            margin-bottom: 5rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: var(--text-primary);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.1);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 3rem 0;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Модальні вікна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 14, 26, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 450px;
+            margin: 1rem;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--accent);
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .modal-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-full {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-cta {
+                flex-direction: column;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .auth-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-background"></div>
+    
+    <div class="container">
+        <header class="header">
+            <div class="logo">AeroSpread Pro</div>
+            <div class="auth-buttons">
+                <button class="btn btn-secondary" onclick="openModal('loginModal')">Вхід</button>
+                <button class="btn btn-primary" onclick="openModal('registerModal')">Реєстрація</button>
+            </div>
+        </header>
+
+        <section class="hero-section">
+            <h1 class="hero-title">AeroSpread Pro</h1>
+            <p class="hero-subtitle">
+                Програмне забезпечення оцінки розповсюдження забруднюючої аерозольної хмари 
+                в антропогенному середовищі. Професійні інструменти для моделювання 
+                та аналізу екологічних ризиків.
+            </p>
+            <div class="hero-cta">
+            </div>
+        </section>
+
+        <section class="features-section">
+            <h2 class="section-title">Основні можливості</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚗️</div>
+                    <h3 class="feature-title">Високоточне моделювання</h3>
+                    <p class="feature-description">
+                        Комплексне моделювання розповсюдження аерозольних забруднень 
+                        з врахуванням метеорологічних умов, топографії та характеристик речовин.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <h3 class="feature-title">Інтерактивна візуалізація</h3>
+                    <p class="feature-description">
+                        Потужні інструменти візуалізації результатів на картах з можливістю 
+                        аналізу зон концентрацій та оцінки ризиків для населення.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">Детальна аналітика</h3>
+                    <p class="feature-description">
+                        Комплексний аналіз результатів моделювання з генерацією звітів 
+                        та рекомендацій відповідно до вимог екологічного законодавства.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📚</div>
+                    <h3 class="feature-title">База даних речовин</h3>
+                    <p class="feature-description">
+                        Розширена база даних фізико-хімічних властивостей речовин, 
+                        гранично допустимих концентрацій та класів небезпеки.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🌤️</div>
+                    <h3 class="feature-title">Метеорологічні дані</h3>
+                    <p class="feature-description">
+                        Інтеграція з метеорологічними службами для отримання 
+                        актуальних даних про погодні умови та прогнози.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <h3 class="feature-title">Експорт і звітність</h3>
+                    <p class="feature-description">
+                        Автоматична генерація професійних звітів у різних форматах 
+                        для подання до регулюючих органів.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer-text">
+                © 2026 AeroSpread Pro. Дипломний проект з розробки програмного забезпечення 
+                для екологічного моделювання.
+            </p>
+        </footer>
+    </div>
+
+    <!-- Модальне вікно входу -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+            <h2 class="modal-title">Вхід до системи</h2>
+            <p class="modal-subtitle">Увійдіть до вашого облікового запису</p>
+            
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="loginEmail" placeholder="your@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Пароль</label>
+                    <input type="password" class="form-input" id="loginPassword" placeholder="Введіть пароль" required>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary btn-full">Увійти</button>
+                </div>
+            </form>
+            
+            <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                Немає облікового запису? 
+                <a href="#" onclick="closeModal('loginModal'); openModal('registerModal')" style="color: var(--accent);">Зареєструйтесь</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Модальне вікно реєстрації -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+            <h2 class="modal-title">Реєстрація</h2>
+            <p class="modal-subtitle">Створіть новий обліковий запис</p>
+            
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label class="form-label">Повне ім'я</label>
+                    <input type="text" class="form-input" id="registerName" placeholder="Ваше повне ім'я" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="registerEmail" placeholder="your@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Пароль</label>
+                    <input type="password" class="form-input" id="registerPassword" placeholder="Мінімум 6 символів" required minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Підтвердження пароля</label>
+                    <input type="password" class="form-input" id="registerConfirmPassword" placeholder="Повторіть пароль" required>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary btn-full">Створити акаунт</button>
+                </div>
+            </form>
+            
+            <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                Вже маєте акаунт? 
+                <a href="#" onclick="closeModal('registerModal'); openModal('loginModal')" style="color: var(--accent);">Увійдіть</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Управління модальними вікнами
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Закриття модального вікна при кліку поза ним
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal(this.id);
+                }
+            });
+        });
+
+        // Обробка входу
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Зберігаємо токен та дані користувача
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('userEmail', data.user.email);
+                    localStorage.setItem('userName', data.user.full_name);
+                    localStorage.setItem('userId', data.user.id);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    
+                    alert('Успішний вхід до системи!');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert('Помилка входу: ' + (data.error || 'Невірний email або пароль'));
+                }
+            } catch (error) {
+                console.error('Помилка:', error);
+                alert('Помилка з\'єднання з сервером. Переконайтесь, що сервер запущений.');
+            }
+        }
+
+        // Обробка реєстрації
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                alert('Паролі не співпадають!');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('Пароль повинен містити мінімум 6 символів');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        full_name: name, 
+                        email, 
+                        password 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Зберігаємо токен та дані користувача
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('userEmail', data.user.email);
+                    localStorage.setItem('userName', data.user.full_name);
+                    localStorage.setItem('userId', data.user.id);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    
+                    alert('Успішна реєстрація! Ласкаво просимо до AeroSpread Pro!');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert('Помилка реєстрації: ' + (data.error || 'Спробуйте інший email'));
+                }
+            } catch (error) {
+                console.error('Помилка:', error);
+                alert('Помилка з\'єднання з сервером. Переконайтесь, що сервер запущений.');
+            }
+        }
+
+        // Перевірка чи користувач вже увійшов
+        if (localStorage.getItem('isLoggedIn') === 'true') {
+            const authButtons = document.querySelector('.auth-buttons');
+            const userName = localStorage.getItem('userName') || 'Користувач';
+            authButtons.innerHTML = `
+                <span style="color: var(--text-secondary); margin-right: 1rem;">Привіт, ${userName}!</span>
+                <a href="dashboard.html" class="btn btn-primary">До панелі</a>
+                <button class="btn btn-secondary" onclick="logout()">Вихід</button>
+            `;
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('token');
+            location.reload();
+        }
+    </script>
+</body>
+</html>
