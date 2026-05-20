@@ -3,26 +3,19 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const db = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 
-// Налаштування nodemailer
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS
-    }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Відправка листа підтвердження
 async function sendVerificationEmail(email, token) {
     const baseUrl = process.env.BASE_URL || 'https://aerospread-pro.onrender.com';
     const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${token}`;
 
-    await transporter.sendMail({
-        from: `"AeroSpread Pro" <${process.env.GMAIL_USER}>`,
+    await resend.emails.send({
+        from: 'AeroSpread Pro <onboarding@resend.dev>',
         to: email,
         subject: 'Підтвердження реєстрації — AeroSpread Pro',
         html: `
@@ -110,7 +103,12 @@ router.post('/register', async (req, res) => {
         );
 
         // Відправка листа
-        await sendVerificationEmail(email, token);
+        try {
+            await sendVerificationEmail(email, token);
+            console.log('✅ Лист відправлено на:', email);
+        } catch (mailError) {
+            console.error('❌ Помилка відправки листа:', mailError.message);
+        }
 
         res.status(201).json({
             message: 'Реєстрація успішна! Перевірте вашу пошту для підтвердження акаунту.',
