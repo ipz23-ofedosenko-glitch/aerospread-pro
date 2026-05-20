@@ -3,24 +3,22 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const Brevo = require('@getbrevo/brevo');
+const { Resend } = require('resend');
 const db = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 
-// Brevo HTTP API
-const brevoClient = new Brevo.TransactionalEmailsApi();
-brevoClient.authentications['apiKey'].apiKey = process.env.BREVO_SMTP_KEY;
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Відправка листа підтвердження
 async function sendVerificationEmail(email, token) {
     const baseUrl = process.env.BASE_URL || 'https://aerospread-pro.onrender.com';
     const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${token}`;
 
-    const sendSmtpEmail = new Brevo.SendSmtpEmail();
-    sendSmtpEmail.to = [{ email }];
-    sendSmtpEmail.sender = { email: 'aerospread@gmail.com', name: 'AeroSpread Pro' };
-    sendSmtpEmail.subject = 'Підтвердження реєстрації — AeroSpread Pro';
-    sendSmtpEmail.htmlContent = `
+    await resend.emails.send({
+        from: 'AeroSpread Pro <onboarding@resend.dev>',
+        to: [email],
+        subject: 'Підтвердження реєстрації — AeroSpread Pro',
+        html: `
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f5f5f5; padding: 20px;">
                 <div style="background: #0a0e1a; padding: 30px; border-radius: 10px; text-align: center;">
