@@ -368,10 +368,7 @@
                 в антропогенному середовищі. Професійні інструменти для моделювання 
                 та аналізу екологічних ризиків.
             </p>
-            <div class="hero-cta">
-                <button class="btn btn-primary" onclick="openModal('registerModal')">Розпочати роботу</button>
-                <button class="btn btn-secondary" onclick="openModal('loginModal')">Увійти в систему</button>
-            </div>
+            <div class="hero-cta">            </div>
         </section>
 
         <section class="features-section">
@@ -435,7 +432,7 @@
 
         <footer class="footer">
             <p class="footer-text">
-                © 2024 AeroSpread Pro. Дипломний проект з розробки програмного забезпечення 
+                © 2026 AeroSpread Pro. Дипломний проект з розробки програмного забезпечення 
                 для екологічного моделювання.
             </p>
         </footer>
@@ -604,11 +601,15 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    closeModal('registerModal');
-                    showInfoModal(
-                        'Перевірте вашу пошту від ' + data.email,
-                        'На ' + data.email + ' відправлено лист підтвердження. Натисніть посилання в листі щоб активувати акаунт.'
-                    );
+                    // Зберігаємо токен та дані користувача
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('userEmail', data.user.email);
+                    localStorage.setItem('userName', data.user.full_name);
+                    localStorage.setItem('userId', data.user.id);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    
+                    alert('Успішна реєстрація! Ласкаво просимо до AeroSpread Pro!');
+                    window.location.href = 'dashboard.html';
                 } else {
                     alert('Помилка реєстрації: ' + (data.error || 'Спробуйте інший email'));
                 }
@@ -636,33 +637,6 @@
             localStorage.removeItem('userId');
             localStorage.removeItem('token');
             location.reload();
-        }
-
-        function showInfoModal(title, message) {
-            const modal = document.createElement('div');
-            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9999;';
-            modal.innerHTML = `
-                <div style="background:#111827;border:1px solid #1e2d47;border-radius:16px;padding:2.5rem;max-width:460px;width:90%;text-align:center;">
-                    <div style="font-size:3rem;margin-bottom:1rem">📧</div>
-                    <h3 style="color:#e8edf5;margin-bottom:0.75rem;font-size:1.1rem">${title}</h3>
-                    <p style="color:#5a6a85;font-size:0.9rem;line-height:1.6;margin-bottom:1.5rem">${message}</p>
-                    <button onclick="this.closest('div[style]').remove()" 
-                            style="background:linear-gradient(135deg,#00d4ff,#0099cc);border:none;padding:0.7rem 2rem;border-radius:8px;color:#0a0e1a;font-weight:700;cursor:pointer;font-size:0.9rem">
-                        Зрозуміло
-                    </button>
-                </div>`;
-            document.body.appendChild(modal);
-        }
-
-        // Показати повідомлення після підтвердження email
-        if (new URLSearchParams(window.location.search).get('verified') === 'true') {
-            setTimeout(() => {
-                showInfoModal(
-                    'Акаунт підтверджено! ✅',
-                    'Ваш email підтверджено. Тепер ви можете війти в систему.'
-                );
-                setTimeout(() => openModal('loginModal'), 500);
-            }, 300);
         }
     </script>
 </body>
