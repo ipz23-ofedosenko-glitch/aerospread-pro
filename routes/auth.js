@@ -2,185 +2,280 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const db = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 
+// Налаштування nodemailer
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS
+    }
+});
+
+// Відправка листа підтвердження
+async function sendVerificationEmail(email, token) {
+    const baseUrl = process.env.BASE_URL || 'https://aerospread-pro.onrender.com';
+    const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${token}`;
+
+    await transporter.sendMail({
+        from: `"AeroSpread Pro" <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject: 'Підтвердження реєстрації — AeroSpread Pro',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f5f5f5; padding: 20px;">
+                <div style="background: #0a0e1a; padding: 30px; border-radius: 10px; text-align: center;">
+                    <h1 style="color: #00d4ff; margin: 0; font-size: 24px;">AeroSpread Pro</h1>
+                    <p style="color: #aaa; margin-top: 5px; font-size: 12px;">Моделювання розповсюдження атмосферних забруднень</p>
+                </div>
+                <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px;">
+                    <h2 style="color: #1a1a2e;">Підтвердіть вашу електронну пошту</h2>
+                    <p style="color: #555; line-height: 1.6;">
+                        Дякуємо за реєстрацію в AeroSpread Pro!<br>
+                        Натисніть кнопку нижче щоб активувати ваш акаунт.
+                    </p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${verifyUrl}" 
+                           style="background: linear-gradient(135deg, #00d4ff, #0099cc); 
+                                  color: #0a0e1a; padding: 14px 32px; 
+                                  text-decoration: none; border-radius: 8px; 
+                                  font-weight: bold; font-size: 16px; display: inline-block;">
+                            ✅ Підтвердити акаунт
+                        </a>
+                    </div>
+                    <p style="color: #999; font-size: 13px;">
+                        Посилання дійсне 24 години.<br>
+                        Якщо ви не реєструвались — просто ігноруйте цей лист.
+                    </p>
+                </div>
+            </div>
+        `
+    });
+}
+
 // Реєстрація нового користувача
 router.post('/register', async (req, res) => {
-  try {
-    const { full_name, email, password } = req.body;
+    try {
+        const { full_name, email, password } = req.body;
 
-    // Валідація вхідних даних
-    if (!full_name || !email || !password) {
-      return res.status(400).json({ 
-        error: 'Всі поля обов\'язкові для заповнення' 
-      });
+        if (!full_name || !email || !password) {
+            return res.status(400).json({
+                error: 'Всі поля обов\'язкові для заповнення'
+            });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({
+                error: 'Пароль повинен містити мінімум 6 символів'
+            });
+        }
+
+        // Перевірка чи користувач вже існує
+        const userExists = await db.query(
+            'SELECT id FROM users WHERE email = $1',
+            [email]
+        );
+
+        if (userExists.rows.length > 0) {
+            return res.status(409).json({
+                error: 'Користувач з таким email вже існує'
+            });
+        }
+
+        // Хешування паролю
+        const salt = await bcrypt.genSalt(10);
+        const password_hash = await bcrypt.hash(password, salt);
+
+        // Створення користувача (не активований)
+        const result = await db.query(
+            `INSERT INTO users (full_name, email, password_hash, is_verified)
+             VALUES ($1, $2, $3, false)
+             RETURNING id, full_name, email, created_at`,
+            [full_name, email, password_hash]
+        );
+
+        const user = result.rows[0];
+
+        // Генерація токена підтвердження
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 години
+
+        await db.query(
+            `INSERT INTO email_verifications (user_id, token, expires_at)
+             VALUES ($1, $2, $3)`,
+            [user.id, token, expiresAt]
+        );
+
+        // Відправка листа
+        await sendVerificationEmail(email, token);
+
+        res.status(201).json({
+            message: 'Реєстрація успішна! Перевірте вашу пошту для підтвердження акаунту.',
+            email: email
+        });
+
+    } catch (error) {
+        console.error('Помилка реєстрації:', error);
+        res.status(500).json({
+            error: 'Помилка сервера при реєстрації'
+        });
     }
-
-    if (password.length < 6) {
-      return res.status(400).json({ 
-        error: 'Пароль повинен містити мінімум 6 символів' 
-      });
-    }
-
-    // Перевірка чи користувач вже існує
-    const userExists = await db.query(
-      'SELECT id FROM users WHERE email = $1',
-      [email]
-    );
-
-    if (userExists.rows.length > 0) {
-      return res.status(409).json({ 
-        error: 'Користувач з таким email вже існує' 
-      });
-    }
-
-    // Хешування паролю
-    const salt = await bcrypt.genSalt(10);
-    const password_hash = await bcrypt.hash(password, salt);
-
-    // Створення нового користувача
-    const result = await db.query(
-      `INSERT INTO users (full_name, email, password_hash) 
-       VALUES ($1, $2, $3) 
-       RETURNING id, full_name, email, created_at`,
-      [full_name, email, password_hash]
-    );
-
-    const user = result.rows[0];
-
-    // Створення JWT токена
-    const token = jwt.sign(
-      { 
-        id: user.id, 
-        email: user.email,
-        full_name: user.full_name 
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.status(201).json({
-      message: 'Реєстрація успішна',
-      user: {
-        id: user.id,
-        full_name: user.full_name,
-        email: user.email,
-        created_at: user.created_at
-      },
-      token
-    });
-
-  } catch (error) {
-    console.error('Помилка реєстрації:', error);
-    res.status(500).json({ 
-      error: 'Помилка сервера при реєстрації' 
-    });
-  }
 });
+
+// Підтвердження email
+router.get('/verify-email', async (req, res) => {
+    try {
+        const { token } = req.query;
+
+        if (!token) {
+            return res.status(400).send(errorPage('Токен не вказано'));
+        }
+
+        // Знаходимо токен
+        const result = await db.query(
+            `SELECT ev.*, u.email FROM email_verifications ev
+             JOIN users u ON ev.user_id = u.id
+             WHERE ev.token = $1`,
+            [token]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(400).send(errorPage('Посилання недійсне або вже використане'));
+        }
+
+        const verification = result.rows[0];
+
+        // Перевірка терміну дії
+        if (new Date() > new Date(verification.expires_at)) {
+            return res.status(400).send(errorPage('Посилання застаріло. Зареєструйтесь знову.'));
+        }
+
+        // Активуємо акаунт
+        await db.query(
+            'UPDATE users SET is_verified = true WHERE id = $1',
+            [verification.user_id]
+        );
+
+        // Видаляємо токен
+        await db.query(
+            'DELETE FROM email_verifications WHERE token = $1',
+            [token]
+        );
+
+        // Редірект на сторінку входу з повідомленням
+        res.redirect('/?verified=true');
+
+    } catch (error) {
+        console.error('Помилка підтвердження:', error);
+        res.status(500).send(errorPage('Помилка сервера'));
+    }
+});
+
+function errorPage(message) {
+    return `
+        <html><body style="font-family:Arial;text-align:center;padding:50px;background:#0a0e1a;color:white;">
+            <h2 style="color:#ff4757">❌ ${message}</h2>
+            <a href="/" style="color:#00d4ff">← Повернутись на сайт</a>
+        </body></html>
+    `;
+}
 
 // Вхід користувача
 router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
+    try {
+        const { email, password } = req.body;
 
-    // Валідація
-    if (!email || !password) {
-      return res.status(400).json({ 
-        error: 'Email та пароль обов\'язкові' 
-      });
+        if (!email || !password) {
+            return res.status(400).json({
+                error: 'Email та пароль обов\'язкові'
+            });
+        }
+
+        const result = await db.query(
+            'SELECT * FROM users WHERE email = $1 AND is_active = true',
+            [email]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(401).json({
+                error: 'Невірний email або пароль'
+            });
+        }
+
+        const user = result.rows[0];
+
+        // Перевірка підтвердження email
+        if (!user.is_verified) {
+            return res.status(403).json({
+                error: 'Будь ласка, підтвердіть вашу електронну пошту перед входом'
+            });
+        }
+
+        const validPassword = await bcrypt.compare(password, user.password_hash);
+
+        if (!validPassword) {
+            return res.status(401).json({
+                error: 'Невірний email або пароль'
+            });
+        }
+
+        await db.query(
+            'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1',
+            [user.id]
+        );
+
+        const token = jwt.sign(
+            { id: user.id, email: user.email, full_name: user.full_name },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.json({
+            message: 'Вхід успішний',
+            user: {
+                id: user.id,
+                full_name: user.full_name,
+                email: user.email,
+                last_login: user.last_login
+            },
+            token
+        });
+
+    } catch (error) {
+        console.error('Помилка входу:', error.message);
+        res.status(500).json({
+            error: 'Помилка сервера при вході',
+            message: error.message
+        });
     }
-
-    // Пошук користувача
-    const result = await db.query(
-      'SELECT * FROM users WHERE email = $1 AND is_active = true',
-      [email]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(401).json({ 
-        error: 'Невірний email або пароль' 
-      });
-    }
-
-    const user = result.rows[0];
-
-    // Перевірка паролю
-    const validPassword = await bcrypt.compare(password, user.password_hash);
-
-    if (!validPassword) {
-      return res.status(401).json({ 
-        error: 'Невірний email або пароль' 
-      });
-    }
-
-    // Оновлення часу останнього входу
-    await db.query(
-      'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1',
-      [user.id]
-    );
-
-    // Створення JWT токена
-    const token = jwt.sign(
-      { 
-        id: user.id, 
-        email: user.email,
-        full_name: user.full_name 
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.json({
-      message: 'Вхід успішний',
-      user: {
-        id: user.id,
-        full_name: user.full_name,
-        email: user.email,
-        last_login: user.last_login
-      },
-      token
-    });
-
-  } catch (error) {
-    console.error('Помилка входу:', error);
-    res.status(500).json({ 
-      error: 'Помилка сервера при вході' 
-    });
-  }
 });
 
-// Отримання профілю поточного користувача
+// Отримання профілю
 router.get('/profile', authenticateToken, async (req, res) => {
-  try {
-    const result = await db.query(
-      `SELECT id, full_name, email, created_at, last_login 
-       FROM users WHERE id = $1`,
-      [req.user.id]
-    );
+    try {
+        const result = await db.query(
+            `SELECT id, full_name, email, created_at, last_login
+             FROM users WHERE id = $1`,
+            [req.user.id]
+        );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ 
-        error: 'Користувача не знайдено' 
-      });
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Користувача не знайдено' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Помилка отримання профілю:', error);
+        res.status(500).json({ error: 'Помилка сервера' });
     }
-
-    res.json(result.rows[0]);
-
-  } catch (error) {
-    console.error('Помилка отримання профілю:', error);
-    res.status(500).json({ 
-      error: 'Помилка сервера' 
-    });
-  }
 });
 
 // Перевірка токена
 router.get('/verify', authenticateToken, (req, res) => {
-  res.json({ 
-    valid: true, 
-    user: req.user 
-  });
+    res.json({ valid: true, user: req.user });
 });
 
 module.exports = router;
