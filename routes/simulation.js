@@ -26,7 +26,7 @@ router.post('/save', async (req, res) => {
         }
 
         // Спочатку зберігаємо додаткову речовину якщо не вказана
-        let substanceId = substance_id || 1;
+        let substanceId = substance_id || null;
 
         // Створюємо проект
         const projectResult = await db.query(

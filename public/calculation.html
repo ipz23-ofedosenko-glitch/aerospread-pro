@@ -332,11 +332,12 @@
     <header class="header">
         <div class="header-content">
             <div>
-                <a href="dashboard.html" class="back-link">← Назад до меню</a>
+                <a href="parameters.html" class="back-link">← Назад</a>
                 <h1 class="page-title">Результати моделювання</h1>
                 <p class="page-subtitle">Гауссова модель розповсюдження</p>
             </div>
             <div class="header-actions">
+                <button class="header-btn primary" onclick="window.location.href='dashboard.html'">← Назад до меню</button>
                 <button class="header-btn primary" onclick="saveResultsToDatabase()" style="background: linear-gradient(135deg, #64ffda, #00d4ff); border: none;">💾 Зберегти проект</button>
                 <button class="header-btn primary" onclick="goToReport()">📊 Звіт</button>
             </div>
@@ -622,7 +623,7 @@
 
                 const resultsData = {
                     project_name: parameters.objectName || 'Розрахунок',
-                    substance_id: 1,
+                    substance_id: parameters.substance?.id || null,
                     substance_name: parameters.substance?.name_ua || '',
                     substance_name_en: parameters.substance?.name_en || '',
                     mac_single: parseFloat(parameters.substance?.mac_single) || 0.1,
